@@ -1,7 +1,7 @@
 [
     {
         "op": "ArgMaxWithValue",
-         "input_desc": [
+        "input_desc": [
             {
                 "name": "x",
                 "param_type": "required",
@@ -23,8 +23,18 @@
             {
                 "name": "indice",
                 "param_type": "required",
-                "format": ["ND"],
-                "type": ["int32"]
+                "format": [
+                    "ND",
+                    "ND",
+                    "ND",
+                    "ND"
+                ],
+                "type": [
+                    "int32",
+                    "int32",
+                    "int32",
+                    "int32"
+                ]
             },
             {
                 "name": "values",
@@ -43,7 +53,7 @@
                 ]
             }
         ],
-        "attr": [                                                                   
+        "attr": [
             {
                 "name": "dimension",
                 "param_type": "required",
@@ -58,4 +68,3 @@
         ]
     }
 ]
-
