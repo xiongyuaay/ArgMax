@@ -6,18 +6,47 @@
 namespace optiling {
 static ge::graphStatus TilingFunc(gert::TilingContext* context)
 {
+    ArgMaxWithValueTilingData tiling;
+    const gert::StorageShape* x1_shape = context->GetInputShape(0);
+    int32_t data_sz = 1;
+    int32_t block_dim = 8;
+    const uint32_t TILE_NUM = 8;
+    uint32_t totalLength = context->GetInputShape(0)->GetOriginShape().GetShapeSize();
 
-  ArgMaxWithValueTilingData tiling;
-  const gert::StorageShape* x1_shape = context->GetInputShape(0);
-  int32_t data_sz = 1;
-  for (int i = 0; i < x1_shape->GetStorageShape().GetDimNum(); i++)
-    data_sz *= x1_shape->GetStorageShape().GetDim(i);
-  tiling.set_size(data_sz);
-  context->SetBlockDim(8);
-  tiling.SaveToBuffer(context->GetRawTilingData()->GetData(), context->GetRawTilingData()->GetCapacity());
-  context->GetRawTilingData()->SetDataSize(tiling.GetDataSize());
+    const int* dimension = attrs->GetAttrPointer<int>(0);
+    const int32_t dimension_length = 0;
+    const bool* keep_dims = attrs->GetAttrPointer<bool>(1);
+    tiling.set_dimension(*dimension);
+    tiling.set_keepDims(*keep_dims);
 
-  return ge::GRAPH_SUCCESS;
+    for (int i = 0; i < x1_shape->GetStorageShape().GetDimNum(); i++)
+    {
+        data_sz *= x1_shape->GetStorageShape().GetDim(i);
+        if (i == *dimension)
+        {
+            dimension_length = x1_shape->GetStorageShape().GetDim(i);
+        }
+        
+    }
+    tiling.set_size(data_sz);
+    tiling.set_dimensionLength(dimension_length);
+    tiling.set_totalLength(totalLength);
+    tiling.set_tileNum(TILE_NUM);
+
+    const gert::RuntimeAttrs* attrs = context->GetAttrs();
+    const int* dimension = attrs->GetAttrPointer<int>(0);
+    const bool* keep_dims = attrs->GetAttrPointer<bool>(1);
+    tiling.set_dimension(*dimension);
+    tiling.set_keep_dims(*keep_dims);
+
+    context->SetBlockDim(block_dim);
+    tiling.SaveToBuffer(context->GetRawTilingData()->GetData(), context->GetRawTilingData()->GetCapacity());
+    context->GetRawTilingData()->SetDataSize(tiling.GetDataSize());
+
+    size_t *currentWorkspace = context->GetWorkspaceSizes(1);
+    currentWorkspace[0] = 0;
+
+    return ge::GRAPH_SUCCESS;
 }
 }
 
@@ -27,7 +56,7 @@ static ge::graphStatus InferShape(gert::InferShapeContext* context)
 {
     const gert::Shape* x1_shape = context->GetInputShape(0);
     gert::Shape* y_shape = context->GetOutputShape(0);
-    *y_shape = *x1_shape;
+    // *y_shape = *x1_shape;
     return GRAPH_SUCCESS;
 }
 }
