@@ -2,6 +2,7 @@
 
 ## 使用msopgen创建项目
 ${INSTALL_DIR}请替换为CANN软件安装后文件存储路径。例如，若安装的Ascend-cann-toolkit软件包，则安装后文件存储路径为：$HOME/Ascend/ascend-toolkit/latest。
+如：/home/ma-user/Ascend/ascend-toolkit/latest/python/site-packages/bin
 
 ${INSTALL_DIR}/python/site-packages/bin/msopgen gen -i {*.json} -f {framework type} -c {Compute Resource} -lan cpp -out {Output Path}
 
