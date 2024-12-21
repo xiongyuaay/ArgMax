@@ -8,36 +8,52 @@ static ge::graphStatus TilingFunc(gert::TilingContext* context)
 {
     ArgMaxWithValueTilingData tiling;
     const gert::StorageShape* x1_shape = context->GetInputShape(0);
-    int32_t data_sz = 1;
     int32_t block_dim = 8;
-    const uint32_t TILE_NUM = 8;
+    const uint32_t TILE_NUM = 1;
     uint32_t totalLength = context->GetInputShape(0)->GetOriginShape().GetShapeSize();
-
-    const int* dimension = attrs->GetAttrPointer<int>(0);
-    const int32_t dimension_length = 0;
-    const bool* keep_dims = attrs->GetAttrPointer<bool>(1);
-    tiling.set_dimension(*dimension);
-    tiling.set_keepDims(*keep_dims);
-
-    for (int i = 0; i < x1_shape->GetStorageShape().GetDimNum(); i++)
-    {
-        data_sz *= x1_shape->GetStorageShape().GetDim(i);
-        if (i == *dimension)
-        {
-            dimension_length = x1_shape->GetStorageShape().GetDim(i);
-        }
-        
-    }
-    tiling.set_size(data_sz);
-    tiling.set_dimensionLength(dimension_length);
-    tiling.set_totalLength(totalLength);
-    tiling.set_tileNum(TILE_NUM);
 
     const gert::RuntimeAttrs* attrs = context->GetAttrs();
     const int* dimension = attrs->GetAttrPointer<int>(0);
     const bool* keep_dims = attrs->GetAttrPointer<bool>(1);
     tiling.set_dimension(*dimension);
-    tiling.set_keep_dims(*keep_dims);
+    tiling.set_keepDims(*keep_dims);
+
+    const uint32_t upper = 1;
+    const uint32_t length = 0;
+    const uint32_t lower = 1;
+
+    for (int i = 0; i < x1_shape->GetStorageShape().GetDimNum(); i++)
+    {
+        if (i == *dimension)
+        {
+            length = x1_shape->GetStorageShape().GetDim(i);
+        }
+        if (i > *dimension)
+        {
+            lower *= x1_shape->GetStorageShape().GetDim(i);
+        }
+        if (i < *dimension)
+        {
+            upper *= x1_shape->GetStorageShape().GetDim(i);
+        }
+    }
+    // if (upper != 0)
+    // {
+    //     block_dim = upper;
+    // }
+    // else
+    // {
+    //     block_dim = 1;
+    // }
+    
+    
+    tiling.set_totalLength(totalLength);
+    tiling.set_tileNum(TILE_NUM);
+    tiling.set_lower(lower);
+    tiling.set_length(length);
+    tiling.set_upper(upper);
+
+    
 
     context->SetBlockDim(block_dim);
     tiling.SaveToBuffer(context->GetRawTilingData()->GetData(), context->GetRawTilingData()->GetCapacity());
